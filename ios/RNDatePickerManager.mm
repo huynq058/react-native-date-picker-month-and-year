@@ -14,6 +14,7 @@ RCT_ENUM_CONVERTER(UIDatePickerMode, (@{
   @"date": @(UIDatePickerModeDate),
   @"datetime": @(UIDatePickerModeDateAndTime),
   @"countdown": @(UIDatePickerModeCountDownTimer), // not supported yet
+  @"yearAndMonth": @(UIDatePickerModeDate), // Mapped to Date as default; replaced at runtime on iOS 17.4+
 }), UIDatePickerModeTime, integerValue)
 
 @end
@@ -75,7 +76,20 @@ RCT_CUSTOM_VIEW_PROPERTY(maximumDate, id, DatePicker)
 
 RCT_EXPORT_VIEW_PROPERTY(minuteInterval, NSInteger)
 RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
-RCT_REMAP_VIEW_PROPERTY(mode, datePickerMode, UIDatePickerMode)
+RCT_CUSTOM_VIEW_PROPERTY(mode, NSString, DatePicker)
+{
+    NSString *modeString = [RCTConvert NSString:json];
+    if ([modeString isEqualToString:@"yearAndMonth"]) {
+        if (@available(iOS 17.4, *)) {
+            [view setDatePickerMode:UIDatePickerModeYearAndMonth];
+        } else {
+            [view setDatePickerMode:UIDatePickerModeDate];
+        }
+    } else {
+        UIDatePickerMode mode = [RCTConvert UIDatePickerMode:json];
+        [view setDatePickerMode:mode];
+    }
+}
 
 RCT_CUSTOM_VIEW_PROPERTY(timeZoneOffsetInMinutes, NSString, DatePicker)
 {
@@ -155,8 +169,19 @@ RCT_EXPORT_METHOD(openPicker:(NSDictionary *) props
         NSString * textColor = [RCTConvert NSString:[props objectForKey:@"textColor"]];
         if(textColor) [picker setTextColorProp:textColor];
         
-        UIDatePickerMode mode = [RCTConvert UIDatePickerMode:[props objectForKey:@"mode"]];
-        [picker setDatePickerMode:mode];
+        NSString * modeString = [RCTConvert NSString:[props objectForKey:@"mode"]];
+        if ([modeString isEqualToString:@"yearAndMonth"]) {
+            if (@available(iOS 17.4, *)) {
+                [picker setDatePickerMode:UIDatePickerModeYearAndMonth];
+            } else {
+                // Fallback: iOS < 17.4 does not support yearAndMonth natively.
+                // This path should not be reached as JS handles the fallback rendering.
+                [picker setDatePickerMode:UIDatePickerModeDate];
+            }
+        } else {
+            UIDatePickerMode mode = [RCTConvert UIDatePickerMode:[props objectForKey:@"mode"]];
+            [picker setDatePickerMode:mode];
+        }
         
         NSLocale * locale = [RCTConvert NSLocale:[props objectForKey:@"locale"]];
         if(locale) [picker setLocale:locale];

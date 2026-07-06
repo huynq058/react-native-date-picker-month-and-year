@@ -76,6 +76,7 @@ const getTitle = (props) => {
   if (title === null) return ''
   if (title) return title
   if (mode === 'time') return 'Select time'
+  if (mode === 'yearAndMonth') return 'Select month and year'
   return 'Select date'
 }
 

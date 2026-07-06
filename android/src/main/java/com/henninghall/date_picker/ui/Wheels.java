@@ -104,6 +104,10 @@ public class Wheels {
         if(state.getMode() == Mode.date ){
             return getDateModeString(daysToSubtract);
         }
+        if(state.getMode() == Mode.yearAndMonth) {
+            ArrayList<Wheel> wheels = getOrderedVisibleWheels();
+            return wheels.get(0).getValue() + " " + wheels.get(1).getValue();
+        }
         return dayWheel.getValue();
     }
 
@@ -169,6 +173,10 @@ public class Wheels {
             return wheels.get(0).getFormatPattern() + " "
                     + wheels.get(1).getFormatPattern() + " "
                     + wheels.get(2).getFormatPattern();
+        }
+        if(state.getMode() == Mode.yearAndMonth){
+            return wheels.get(0).getFormatPattern() + " "
+                    + wheels.get(1).getFormatPattern();
         }
         return dayWheel.getFormatPattern();
     }
